@@ -8,7 +8,7 @@ const documentRoutes = require("./routes/documents");
 const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
-const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
+const allowedOrigins = (process.env.CORS_ORIGIN || "https://ajaia-doc-editor-mzic.onrender.com")
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
