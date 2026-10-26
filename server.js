@@ -1,3 +1,4 @@
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -8,48 +9,71 @@ const documentRoutes = require("./routes/documents");
 const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
-const allowedOrigins = (process.env.CORS_ORIGIN || "https://ajaia-doc-editor-mzic.onrender.com")
+
+const allowedOrigins = (
+  process.env.CORS_ORIGIN ||
+  "https://fronentajaia-nine.vercel.app,http://localhost:5173"
+)
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 
 app.use(
   cors({
     origin(origin, callback) {
       if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-        return;
+        return callback(null, true);
       }
-      callback(new Error("Origin is not allowed by CORS"));
+
+      return callback(new Error("Origin is not allowed by CORS"));
     },
-  }),
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
 );
+
 app.use(express.json({ limit: "2mb" }));
 
 app.get("/", (req, res) => {
-  res.json({ success: true, data: { message: "Ajaia Docs API is running" } });
+  res.json({
+    success: true,
+    data: { message: "Ajaia Docs API is running" },
+  });
 });
+
 app.use("/api/auth", authRoutes);
 app.use("/api/documents", documentRoutes);
+
 app.use((req, res) => {
-  res.status(404).json({ success: false, error: "Route not found" });
+  res.status(404).json({
+    success: false,
+    error: "Route not found",
+  });
 });
+
 app.use(errorHandler);
 
 async function startServer() {
   if (!process.env.MONGODB_URI) {
-    throw new Error("MONGODB_URI must be configured in the backend environment");
+    throw new Error(
+      "MONGODB_URI must be configured in the backend environment"
+    );
   }
+
   if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
-    throw new Error("JWT_SECRET must be configured with at least 32 characters");
+    throw new Error(
+      "JWT_SECRET must be configured with at least 32 characters"
+    );
   }
 
   await mongoose.connect(process.env.MONGODB_URI);
   console.log("MongoDB connected successfully");
 
   const port = process.env.PORT || 5000;
+
   app.listen(port, () => {
-    console.log(`Backend running at http://localhost:${port}`);
+    console.log(`Backend running on port ${port}`);
   });
 }
 
